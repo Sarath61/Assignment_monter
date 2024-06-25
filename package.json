@@ -1,0 +1,35 @@
+{
+  "name": "monter",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "start:prod": "cross-env NODE_ENV=prodution nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Sarath61/Assignment_monter.git"
+  },
+  "author": "Sarath Sai Jupalli",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Sarath61/Assignment_monter/issues"
+  },
+  "homepage": "https://github.com/Sarath61/Assignment_monter#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^7.3.1",
+    "helmet": "^7.1.0",
+    "hpp": "^0.2.3",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.4.3",
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.9.14",
+    "validator": "^13.12.0",
+    "xss-clean": "^0.1.4"
+  }
+}
