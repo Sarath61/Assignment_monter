@@ -30,32 +30,33 @@ const userSchema = new mongoose.Schema({
     minLength: 8,
     select: false,
   },
-  passwordConfirm: {
+  age: Number,
+  DOB: Date,
+  description: {
     type: String,
-    require: [true, "PasswordConfirm is required"],
-    minLength: 8,
-    validate: {
-      validator: function (el) {
-        return el === this.password;
-      },
-      message: "Passwords are not the same",
-    },
-    age: Number,
-    DOB: Date,
-    description: {
-      type: String,
-      trim: true,
-    },
-    work: {
-      type: String,
-      trim: true,
-    },
-    location: {
-      type: String,
-      trim: true,
-    },
+    trim: true,
+  },
+  work: {
+    type: String,
+    trim: true,
+  },
+  location: {
+    type: String,
+    trim: true,
   },
 });
+
+userSchema.pre("save", async function (next) {
+  // hash the password with cost of 12
+  this.password = await bcrypt.hash(this.password, 12);
+});
+
+userSchema.methods.correctPassword = async function (
+  cadidatePassword,
+  userpassword
+) {
+  return await bcrypt.compare(cadidatePassword, userpassword);
+};
 
 const User = mongoose.model("users", userSchema);
 
