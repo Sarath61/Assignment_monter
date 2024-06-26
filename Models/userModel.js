@@ -48,14 +48,15 @@ const userSchema = new mongoose.Schema({
 
 userSchema.pre("save", async function (next) {
   // hash the password with cost of 12
+  if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
 });
 
 userSchema.methods.correctPassword = async function (
-  cadidatePassword,
-  userpassword
+  candidatePassword,
+  userPassword
 ) {
-  return await bcrypt.compare(cadidatePassword, userpassword);
+  return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 const User = mongoose.model("users", userSchema);

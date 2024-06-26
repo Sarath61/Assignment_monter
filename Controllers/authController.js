@@ -3,7 +3,7 @@ const User = require("../Models/userModel");
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/appError");
 const validator = require("validator");
-const { promisify } = require('util')
+const { promisify } = require("util");
 
 const validType = (input) => {
   if (validator.isEmail(input)) {
@@ -20,6 +20,11 @@ exports.signup = catchAsync(async (req, res, next) => {
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
   });
+  if (req.body.role === "admin") {
+    newUser.role = "admin";
+    await newUser.save();
+  }
+
   const id = newUser._id;
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
@@ -43,7 +48,9 @@ exports.login = catchAsync(async (req, res, next) => {
   // 2) check if user exists && password is correct
   const query =
     validType(input) == "email" ? { email: input } : { username: input };
+
   const user = await User.findOne(query).select("+password");
+
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError("Incorrect Email/Username or password", 401));
   }
@@ -89,3 +96,14 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = freshUser;
   next();
 });
+
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError("You do not have permissions to perform this action", 403)
+      );
+    }
+    next();
+  };
+};
