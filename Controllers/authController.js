@@ -3,6 +3,7 @@ const User = require("../Models/userModel");
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/appError");
 const validator = require("validator");
+const { promisify } = require('util')
 
 const validType = (input) => {
   if (validator.isEmail(input)) {
@@ -58,4 +59,33 @@ exports.login = catchAsync(async (req, res, next) => {
       user,
     },
   });
+});
+
+exports.protect = catchAsync(async (req, res, next) => {
+  let token;
+  //  1) Get the token and check if exists
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token) {
+    return next(new AppError("You are not logged in! Please log in again"));
+  }
+
+  // 2) verification token
+  const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+  // 3) Check if user  still exists
+  const freshUser = await User.findById(decoded.id);
+  if (!freshUser) {
+    return next(
+      new AppError("The user belonging to the token no longer exist", 401)
+    );
+  }
+  // Grant access to protected route
+  req.user = freshUser;
+  next();
 });
