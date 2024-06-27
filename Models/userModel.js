@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema({
     minLength: 8,
     select: false,
   },
+  isVerified: { type: Boolean, default: false },
+  otp: String,
+  otpExpires: Date,
   age: Number,
   DOB: Date,
   description: {

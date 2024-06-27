@@ -1,8 +1,10 @@
 const catchAsync = require("../utils/catchAsync");
 const User = require("../Models/userModel");
 const jwt = require("jsonwebtoken");
+const otpGenerator = require("otp-generator");
 const AppError = require("../utils/appError");
 const validator = require("validator");
+const sendEmail = require("../utils/email");
 const { promisify } = require("util");
 
 const validType = (input) => {
@@ -13,27 +15,73 @@ const validType = (input) => {
   }
 };
 
-exports.signup = catchAsync(async (req, res, next) => {
+exports.registerUser = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     username: req.body.username,
     email: req.body.email,
     password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
+  });
+  const otp = otpGenerator.generate(6, {
+    upperCaseAlphabets: false,
+    lowerCaseAlphabets: false,
+    specialChars: false,
   });
   if (req.body.role === "admin") {
     newUser.role = "admin";
-    await newUser.save();
   }
+  newUser.otp = otp;
+  newUser.otpExpires = Date.now() + 60 * 60 * 1000;
+  await newUser.save();
+  const message = `Your opt is ${otp}`;
+  try {
+    await sendEmail({
+      email: newUser.email,
+      subject: "OTP verification",
+      message,
+    });
+    console.log("reached");
+    res.status(200).json({
+      status: "success",
+      message: "OTP send to email!",
+    });
+  } catch (err) {
+    newUser.otp = undefined;
+    newUser.otpExpires = undefined;
+    await newUser.save();
+    return next(
+      new AppError("There was error sending in OTP, Try again later", 500)
+    );
+  }
+});
 
-  const id = newUser._id;
+exports.verifyUser = catchAsync(async (req, res, next) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) {
+    return next(new AppError("Please provide email and OTP"));
+  }
+  const user = await User.findOne({
+    email,
+    otp,
+    otpExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    return next(new AppError("Invalid OTP or expired OTP"));
+  }
+  user.isVerified = true;
+  user.otp = undefined;
+  user.otpExpires = undefined;
+
+  await user.save();
+  const id = user._id;
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN,
   });
-  res.status(201).json({
+  res.status(200).json({
     status: "success",
-    token,
+    message: "Account verified successfully",
     data: {
-      newUser,
+      token,
+      user,
     },
   });
 });
