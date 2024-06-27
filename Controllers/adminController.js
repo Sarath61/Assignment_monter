@@ -40,6 +40,7 @@ exports.getUser = catchAsync(async (req, res, next) => {
 
 exports.deleteUser = catchAsync(async (req, res, next) => {
   const { username } = req.body;
+  await User.deleteOne({ username });
   res.status(204).json({
     status: "success",
     data: null,

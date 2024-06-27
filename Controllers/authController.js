@@ -22,7 +22,7 @@ exports.registerUser = catchAsync(async (req, res, next) => {
     password: req.body.password,
   });
   const otp = otpGenerator.generate(6, {
-    upperCaseAlphabets: false,
+    upperCaseAlphabets: false,                                                   
     lowerCaseAlphabets: false,
     specialChars: false,
   });
