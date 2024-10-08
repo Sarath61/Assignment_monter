@@ -1,6 +1,7 @@
-const express = require("express");
-const authController = require("../Controllers/authController");
-const adminController = require("../Controllers/adminController");
+import express from "express";
+import authController from "../Controllers/authController";
+import adminController from "../Controllers/adminController";
+
 const route = express.Router();
 
 route.post(
@@ -28,4 +29,5 @@ route.delete(
   authController.restrictTo("admin"),
   adminController.deleteUser
 );
-module.exports = route;
+
+export default route;

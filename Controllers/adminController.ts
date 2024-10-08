@@ -1,13 +1,13 @@
-const User = require("../Models/userModel");
-const AppError = require("../utils/appError");
-const catchAsync = require("../utils/catchAsync");
+import User from "../Models/userModel";
+import AppError from "../utils/appError";
+import catchAsync from "../utils/catchAsync";
 
-exports.updateRole = (req, res, next) => {
+const updateRole = (req, res, next) => {
   req.body.role = "admin";
   next();
 };
 
-exports.getAllUsers = catchAsync(async (req, res, next) => {
+const getAllUsers = catchAsync(async (req, res, next) => {
   const usersData = await User.aggregate([
     {
       $match: {
@@ -29,7 +29,7 @@ exports.getAllUsers = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.getUser = catchAsync(async (req, res, next) => {
+const getUser = catchAsync(async (req, res, next) => {
   const { username } = req.body;
   const user = await User.findOne({ username, role: { $ne: "admin" } });
   res.status(200).json({
@@ -38,7 +38,7 @@ exports.getUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.deleteUser = catchAsync(async (req, res, next) => {
+const deleteUser = catchAsync(async (req, res, next) => {
   const { username } = req.body;
   await User.deleteOne({ username });
   res.status(204).json({
@@ -46,3 +46,10 @@ exports.deleteUser = catchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+export default {
+  getAllUsers,
+  getUser,
+  deleteUser,
+  updateRole,
+};

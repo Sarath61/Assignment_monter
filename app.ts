@@ -1,21 +1,15 @@
-const express = require("express");
+import express from "express";
+import morgan from "morgan";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import mongoSanitize from "express-mongo-sanitize";
+import xss from "xss-clean";
+import userRouter from "./Routers/userRouters";
+import adminRouter from "./Routers/adminRouters";
+import AppError from "./utils/appError";
+import globalErrorHandler from "./Controllers/errorController";
 
 const app = express();
-
-const morgan = require("morgan");
-
-const helmet = require("helmet");
-
-const rateLimit = require("express-rate-limit");
-
-const mongoSanitize = require("express-mongo-sanitize");
-
-const xss = require("xss-clean");
-
-const userRouter = require("./Routers/userRouters");
-const adminRouter = require("./Routers/adminRouters");
-const AppError = require("./utils/appError");
-const globalErrorHandler = require("./Controllers/errorController");
 
 app.use(helmet());
 // Development logging
@@ -49,4 +43,4 @@ app.all("*", (req, res, next) => {
 });
 app.use(globalErrorHandler);
 
-module.exports = app;
+export default app;

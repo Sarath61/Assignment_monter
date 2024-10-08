@@ -1,6 +1,6 @@
-const catchAsync = require("../utils/catchAsync");
-const AppError = require("../utils/appError");
-const User = require("../Models/userModel");
+import catchAsync from "../utils/catchAsync";
+import AppError from "../utils/appError";
+import User from "../Models/userModel";
 
 const filterObj = (obj, ...allowedFields) => {
   const newObj = {};
@@ -10,7 +10,7 @@ const filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
-exports.getUser = catchAsync(async (req, res, next) => {
+export const getUser = catchAsync(async (req, res, next) => {
   res.status(200).json({
     satuts: "success",
     data: {
@@ -19,7 +19,7 @@ exports.getUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.updateMe = catchAsync(async (req, res, next) => {
+export const updateMe = catchAsync(async (req, res, next) => {
   // 1) create error if user POSTs password , username , email
   if (req.body.password || req.body.username || req.body.email) {
     return next(
@@ -51,3 +51,8 @@ exports.updateMe = catchAsync(async (req, res, next) => {
     },
   });
 });
+
+export default {
+  updateMe,
+  getUser,
+};

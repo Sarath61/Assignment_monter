@@ -1,19 +1,19 @@
-const AppError = require("../utils/appError");
+import AppError from "../utils/appError";
 
-const handleCastErrorDB = (err) => {
+const handleCastErrorDB = (err:any) => {
   const message = `invalid ${err.path}: ${err.value}.`;
   return new AppError(message, 400);
 };
 
-const handleDuplicateFieldsDB = (err) => {
+const handleDuplicateFieldsDB = (err:any) => {
   const value = err.errmsg.match(/(["'])(\\?.)*?\1/);
   console.log(value);
   const message = "Duplicate Feilds value: Please use another value";
   return new AppError(message, 404);
 };
 
-const handleValidationErrorDB = (err) => {
-  const error = Object.values(err.error).map((el) => el.message);
+const handleValidationErrorDB = (err: any) => {
+  const error = Object.values(err.errors).map((el: any) => el.message);
   const message = `Invalid input data. ${error.join(". ")}`;
   return new AppError(message, 400);
 };
@@ -24,7 +24,7 @@ const handleJWTError = () =>
 const handleJWTExpiredError = () =>
   new AppError("Your token has expired! Please log in again", 401);
 
-const sendErrorDev = (err, res) => {
+const sendErrorDev = (err: AppError, res) => {
   res.status(err.statusCode).json({
     status: err.status,
     error: err,
@@ -33,7 +33,7 @@ const sendErrorDev = (err, res) => {
   });
 };
 
-const sendErrorProd = (err, res) => {
+const sendErrorProd = (err: AppError, res) => {
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
@@ -52,11 +52,11 @@ const sendErrorProd = (err, res) => {
   }
 };
 
-module.exports = (err, req, res, next) => {
+export default (err: any, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "Error";
   if (process.env.NODE_ENV === "development") {
-    sendErrorDev(err, res);
+    sendErrorDev(err as AppError, res);
   } else if (process.env.NODE_ENV === "production") {
     let error = { ...err };
     if (error.name === "CastError") error = handleCastErrorDB(error);
@@ -65,6 +65,6 @@ module.exports = (err, req, res, next) => {
       error = handleValidationErrorDB(error);
     if (error.name === "JsonWebTokenError") error = handleJWTError();
     if (error.name === "TokenExpiredError") error = handleJWTExpiredError();
-    sendErrorProd(error, res);
+    sendErrorProd(error as AppError, res);
   }
 };

@@ -1,11 +1,11 @@
-const catchAsync = require("../utils/catchAsync");
-const User = require("../Models/userModel");
-const jwt = require("jsonwebtoken");
-const otpGenerator = require("otp-generator");
-const AppError = require("../utils/appError");
-const validator = require("validator");
-const sendEmail = require("../utils/email");
-const { promisify } = require("util");
+import catchAsync from "../utils/catchAsync";
+import User from "../Models/userModel";
+import jwt from "jsonwebtoken";
+import otpGenerator from "otp-generator";
+import AppError from "../utils/appError";
+import validator from "validator";
+import sendEmail from "../utils/email";
+import { promisify } from "node:util";
 
 const validType = (input) => {
   if (validator.isEmail(input)) {
@@ -15,14 +15,14 @@ const validType = (input) => {
   }
 };
 
-exports.registerUser = catchAsync(async (req, res, next) => {
+export const registerUser = catchAsync(async (req, res, next) => {
   const newUser = await User.create({
     username: req.body.username,
     email: req.body.email,
     password: req.body.password,
   });
   const otp = otpGenerator.generate(6, {
-    upperCaseAlphabets: false,                                                   
+    upperCaseAlphabets: false,
     lowerCaseAlphabets: false,
     specialChars: false,
   });
@@ -30,7 +30,7 @@ exports.registerUser = catchAsync(async (req, res, next) => {
     newUser.role = "admin";
   }
   newUser.otp = otp;
-  newUser.otpExpires = Date.now() + 60 * 60 * 1000;
+  newUser.otpExpires = new Date(Date.now() + 60 * 60 * 1000);
   await newUser.save();
   const message = `Your opt is ${otp}`;
   try {
@@ -54,10 +54,10 @@ exports.registerUser = catchAsync(async (req, res, next) => {
   }
 });
 
-exports.verifyUser = catchAsync(async (req, res, next) => {
+export const verifyUser = catchAsync(async (req, res, next) => {
   const { email, otp } = req.body;
   if (!email || !otp) {
-    return next(new AppError("Please provide email and OTP"));
+    return next(new AppError("Please provide email and OTP", 400));
   }
   const user = await User.findOne({
     email,
@@ -65,7 +65,7 @@ exports.verifyUser = catchAsync(async (req, res, next) => {
     otpExpires: { $gt: Date.now() },
   });
   if (!user) {
-    return next(new AppError("Invalid OTP or expired OTP"));
+    return next(new AppError("Invalid OTP or expired OTP", 401));
   }
   user.isVerified = true;
   user.otp = undefined;
@@ -86,11 +86,11 @@ exports.verifyUser = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.login = catchAsync(async (req, res, next) => {
+export const login = catchAsync(async (req, res, next) => {
   const { input, password } = req.body;
   // 1) check if email and password exist
   if (!input || !password) {
-    return next(new AppError("Please provide email and Password"));
+    return next(new AppError("Please provide email and Password", 401));
   }
 
   // 2) check if user exists && password is correct
@@ -116,7 +116,7 @@ exports.login = catchAsync(async (req, res, next) => {
   });
 });
 
-exports.protect = catchAsync(async (req, res, next) => {
+export const protect = catchAsync(async (req, res, next) => {
   let token;
   //  1) Get the token and check if exists
   if (
@@ -127,7 +127,9 @@ exports.protect = catchAsync(async (req, res, next) => {
   }
 
   if (!token) {
-    return next(new AppError("You are not logged in! Please log in again"));
+    return next(
+      new AppError("You are not logged in! Please log in again", 401)
+    );
   }
 
   // 2) verification token
@@ -145,7 +147,7 @@ exports.protect = catchAsync(async (req, res, next) => {
   next();
 });
 
-exports.restrictTo = (...roles) => {
+export const restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       return next(
@@ -154,4 +156,12 @@ exports.restrictTo = (...roles) => {
     }
     next();
   };
+};
+
+export default {
+  restrictTo,
+  protect,
+  login,
+  verifyUser,
+  registerUser,
 };
