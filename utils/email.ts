@@ -1,5 +1,13 @@
 import nodemailer from "nodemailer";
-const sendEmail = async (options) => {
+import SMTPTransport from "nodemailer/lib/smtp-transport";
+
+interface EmailOptions {
+  email: string;
+  subject: string;
+  message: string;
+}
+
+const sendEmail = async (options: EmailOptions) => {
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
@@ -7,7 +15,7 @@ const sendEmail = async (options) => {
       user: process.env.EMAIL_USERNAME,
       pass: process.env.EMAIL_PASSWORD,
     },
-  });
+  } as SMTPTransport.Options);
 
   const mailOptions = {
     from: "Sarath<sarathsai4602@gmail>",

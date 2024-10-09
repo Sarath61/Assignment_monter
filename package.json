@@ -34,7 +34,13 @@
     "xss-clean": "^0.1.4"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/express": "^5.0.0",
-    "@types/node": "^22.7.5"
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^22.7.5",
+    "@types/nodemailer": "^6.4.16",
+    "@types/otp-generator": "^4.0.2",
+    "@types/validator": "^13.12.2"
   }
 }

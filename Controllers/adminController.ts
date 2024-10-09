@@ -1,8 +1,8 @@
 import User from "../Models/userModel";
-import AppError from "../utils/appError";
 import catchAsync from "../utils/catchAsync";
+import { Request, Response, NextFunction } from "express";
 
-const updateRole = (req, res, next) => {
+const updateRole = (req: Request, res: Response, next: NextFunction) => {
   req.body.role = "admin";
   next();
 };

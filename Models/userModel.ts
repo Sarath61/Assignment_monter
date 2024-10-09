@@ -1,8 +1,28 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Model } from "mongoose";
 import validator from "validator";
 import bcrypt from "bcryptjs";
 
-const userSchema = new mongoose.Schema({
+interface IUser extends Document {
+  username: string;
+  email: string;
+  role: "user" | "admin";
+  password: string;
+  isVerified: boolean;
+  otp?: string;
+  otpExpires?: Date;
+  age?: number;
+  DOB?: Date;
+  description?: string;
+  work?: string;
+  location?: string;
+
+  correctPassword(
+    candidatePassword: string,
+    userPassword: string
+  ): Promise<boolean>;
+}
+
+const userSchema = new mongoose.Schema<IUser>({
   username: {
     type: String,
     require: [true, "Username required"],
@@ -47,19 +67,19 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-userSchema.pre("save", async function (next) {
+userSchema.pre<IUser>("save", async function (next) {
   // hash the password with cost of 12
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
 });
 
 userSchema.methods.correctPassword = async function (
-  candidatePassword,
-  userPassword
+  candidatePassword: string,
+  userPassword: string
 ) {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-const User = mongoose.model("users", userSchema);
+const User: Model<IUser> = mongoose.model<IUser>("users", userSchema);
 
 export default User;

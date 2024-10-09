@@ -1,11 +1,12 @@
 import AppError from "../utils/appError";
+import { Request, Response, NextFunction } from "express";
 
-const handleCastErrorDB = (err:any) => {
+const handleCastErrorDB = (err: any) => {
   const message = `invalid ${err.path}: ${err.value}.`;
   return new AppError(message, 400);
 };
 
-const handleDuplicateFieldsDB = (err:any) => {
+const handleDuplicateFieldsDB = (err: any) => {
   const value = err.errmsg.match(/(["'])(\\?.)*?\1/);
   console.log(value);
   const message = "Duplicate Feilds value: Please use another value";
@@ -33,7 +34,7 @@ const sendErrorDev = (err: AppError, res) => {
   });
 };
 
-const sendErrorProd = (err: AppError, res) => {
+const sendErrorProd = (err: AppError, res: Response) => {
   if (err.isOperational) {
     res.status(err.statusCode).json({
       status: err.status,
@@ -52,7 +53,7 @@ const sendErrorProd = (err: AppError, res) => {
   }
 };
 
-export default (err: any, req, res, next) => {
+export default (err: any, req: Request, res: Response, next: NextFunction) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "Error";
   if (process.env.NODE_ENV === "development") {

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv"
+import dotenv from "dotenv";
 dotenv.config({ path: "../monter/config.env" });
-const DB = process.env.DATABASE.replace(
+const DB: string = process.env.DATABASE.replace(
   "<PASSWORD>",
   process.env.DATABASE_PASSWORD
 );
