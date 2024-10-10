@@ -1,12 +1,17 @@
 import catchAsync from "../utils/catchAsync";
 import User from "../Models/userModel";
-import jwt from "jsonwebtoken";
+import jwt, { SigningKeyCallback } from "jsonwebtoken";
+import { JwtVerifyPromisified } from "jsonwebtoken";
 import otpGenerator from "otp-generator";
 import AppError from "../utils/appError";
 import validator from "validator";
 import sendEmail from "../utils/email";
 import { promisify } from "node:util";
 import { Request, Response, NextFunction } from "express";
+
+interface Idecode extends SigningKeyCallback {
+  id?: string;
+}
 
 const validType = (input: string) => {
   if (validator.isEmail(input)) {
@@ -141,7 +146,10 @@ export const protect = catchAsync(
     }
 
     // 2) verification token
-    const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+
+    const verfiyAsync = promisify(jwt.verify) as JwtVerifyPromisified;
+
+    const decoded: Idecode = await verfiyAsync(token, process.env.JWT_SECRET);
 
     // 3) Check if user  still exists
     const freshUser = await User.findById(decoded.id);
@@ -156,8 +164,13 @@ export const protect = catchAsync(
   }
 );
 
-export const restrictTo = (...roles) => {
-  return (req:Request, res:Response, next:NextFunction) => {
+export const restrictTo = (...roles: string[]) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return next(
+        new AppError("User need to login to perform this action", 403)
+      );
+    }
     if (!roles.includes(req.user.role)) {
       return next(
         new AppError("You do not have permissions to perform this action", 403)

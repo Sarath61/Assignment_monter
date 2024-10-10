@@ -28,7 +28,7 @@ exports.getUser = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0
     res.status(200).json({
         satuts: "success",
         data: {
-            user: req.user,
+            user: req.headers["user"],
         },
     });
 }));
@@ -38,12 +38,18 @@ exports.updateMe = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 
         return next(new appError_1.default("This not for Password or Username/email update.", 400));
     }
     // 2) ownly wanted fields are taken and unwanted are filtered
-    const filerdBody = filterObj(req.body, "age", "location", "description", "DOB", "work");
+    const filterdBody = filterObj(req.body, "age", "location", "description", "DOB", "work");
+    if (!req.user) {
+        return res.status(401).json({
+            state: "failed",
+            message: "user don't exists",
+        });
+    }
     // 3) update user documnet
     if (!req.user.isVerified) {
         return next(new appError_1.default("User not verified", 400));
     }
-    const updatedUser = yield userModel_1.default.findByIdAndUpdate(req.user.id, filerdBody, {
+    const updatedUser = yield userModel_1.default.findByIdAndUpdate(req.user.id, filterdBody, {
         new: true,
         runValidators: true,
     });

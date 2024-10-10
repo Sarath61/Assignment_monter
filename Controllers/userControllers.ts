@@ -1,10 +1,10 @@
 import catchAsync from "../utils/catchAsync";
 import AppError from "../utils/appError";
-import User from "../Models/userModel";
+import User, { IUser } from "../Models/userModel";
 import { Request, Response, NextFunction } from "express";
 
 const filterObj = (obj: any, ...allowedFields: string[]) => {
-  const newObj:{[key:string]:any} = {};
+  const newObj: { [key: string]: any } = {};
   Object.keys(obj).forEach((el) => {
     if (allowedFields.includes(el)) newObj[el] = obj[el];
   });
@@ -39,6 +39,12 @@ export const updateMe = catchAsync(
       "DOB",
       "work"
     );
+    if (!req.user) {
+      return res.status(401).json({
+        state: "failed",
+        message: "user don't exists",
+      });
+    }
     // 3) update user documnet
     if (!req.user.isVerified) {
       return next(new AppError("User not verified", 400));

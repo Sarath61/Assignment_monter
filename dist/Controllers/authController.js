@@ -132,7 +132,8 @@ exports.protect = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0
         return next(new appError_1.default("You are not logged in! Please log in again", 401));
     }
     // 2) verification token
-    const decoded = yield (0, node_util_1.promisify)(jsonwebtoken_1.default.verify)(token, process.env.JWT_SECRET);
+    const verfiyAsync = (0, node_util_1.promisify)(jsonwebtoken_1.default.verify);
+    const decoded = yield verfiyAsync(token, process.env.JWT_SECRET);
     // 3) Check if user  still exists
     const freshUser = yield userModel_1.default.findById(decoded.id);
     if (!freshUser) {
@@ -144,6 +145,9 @@ exports.protect = (0, catchAsync_1.default)((req, res, next) => __awaiter(void 0
 }));
 const restrictTo = (...roles) => {
     return (req, res, next) => {
+        if (!req.user) {
+            return next(new appError_1.default("User need to login to perform this action", 403));
+        }
         if (!roles.includes(req.user.role)) {
             return next(new appError_1.default("You do not have permissions to perform this action", 403));
         }
