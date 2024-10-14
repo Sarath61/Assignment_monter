@@ -8,6 +8,13 @@ import validator from "validator";
 import sendEmail from "../utils/email";
 import { promisify } from "node:util";
 import { Request, Response, NextFunction } from "express";
+import { z } from "zod";
+
+const registerInput = z.object({
+  username: z.string().min(5).max(10),
+  password: z.string().min(6).max(20),
+  email: z.string().min(12).max(30),
+});
 
 interface Idecode extends SigningKeyCallback {
   id?: string;
@@ -23,11 +30,22 @@ const validType = (input: string) => {
 
 export const registerUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
+    
+    const parsedInput = registerInput.safeParse(req.body);
+
+    if (!parsedInput.success) {
+      const error = parsedInput.error;
+      return next(
+        new AppError("Please provide username,password and email", 400)
+      );
+    }
+
     const newUser = await User.create({
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
     });
+
     const otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
@@ -65,9 +83,11 @@ export const registerUser = catchAsync(
 export const verifyUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { email, otp } = req.body;
+
     if (!email || !otp) {
       return next(new AppError("Please provide email and OTP", 400));
     }
+
     const user = await User.findOne({
       email,
       otp,
@@ -99,6 +119,7 @@ export const verifyUser = catchAsync(
 export const login = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { input, password } = req.body;
+
     // 1) check if email and password exist
     if (!input || !password) {
       return next(new AppError("Please provide email and Password", 401));

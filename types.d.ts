@@ -2,8 +2,6 @@ import { IUser } from "./Models/userModel";
 import { Express } from "express-serve-static-core";
 import { Jwt } from "jsonwebtoken";
 
-declare module "xss-clean";
-
 declare global {
   namespace Express {
     interface Request {
